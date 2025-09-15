@@ -8,18 +8,15 @@ const CSS = `
   }
 `;
 
-const ICON_PATHS = {
-  on: {
-    "16": "assets/icons/on-16.png",
-    "24": "assets/icons/on-24.png",
-    "32": "assets/icons/on-32.png",
-  },
-  off: {
-    "16": "assets/icons/off-16.png",
-    "24": "assets/icons/off-24.png",
-    "32": "assets/icons/off-32.png",
-  },
-};
+const ICON_SIZES = ["16", "24", "32"];
+
+function getIconPaths(isOn) {
+  const variant = isOn ? "on" : "off";
+  return ICON_SIZES.reduce((paths, size) => {
+    paths[size] = chrome.runtime.getURL(`assets/icons/${variant}-${size}.png`);
+    return paths;
+  }, {});
+}
 
 const storage = chrome.storage?.session ?? chrome.storage.local;
 
@@ -48,8 +45,7 @@ async function removeTabState(tabId) {
 }
 
 function setIconForTab(tabId, isOn) {
-  const path = isOn ? ICON_PATHS.on : ICON_PATHS.off;
-  chrome.action.setIcon({ tabId, path });
+  chrome.action.setIcon({ tabId, path: getIconPaths(isOn) });
   chrome.action.setTitle({ tabId, title: isOn ? "RTL: On" : "RTL: Off" });
 }
 
