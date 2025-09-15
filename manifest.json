@@ -1,14 +1,14 @@
 {
     "manifest_version": 3,
     "name": "RTL Toggle",
-    "version": "1.0",
+    "version": "1.1.0",
     "description": "راست‌چین کردن هر صفحه با یک کلیک",
     "action": {
         "default_title": "RTL Toggle",
         "default_icon": {
-            "16": "icon16.png",
-            "48": "icon16.png",
-            "128": "icon16.png"
+            "16": "off-16.png",
+            "24": "off-24.png",
+            "32": "off-32.png"
         }
     },
     "background": {
@@ -19,9 +19,19 @@
         "activeTab",
         "storage"
     ],
+    "commands": {
+        "toggle-rtl": {
+            "suggested_key": {
+                "default": "Alt+Shift+R",
+                "mac": "Alt+Shift+R"
+            },
+            "description": "Toggle RTL on active tab"
+        }
+    },
     "icons": {
-        "16": "icon16.png",
-        "48": "icon16.png",
-        "128": "icon16.png"
+        "16": "icon-16.png",
+        "32": "icon-32.png",
+        "48": "icon-48.png",
+        "128": "icon-128.png"
     }
 }
