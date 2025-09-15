@@ -8,7 +8,6 @@ const CSS = `
   }
 `;
 
-// Storage: نگهداری وضعیت برای هر tabId به صورت موقت
 const storage = chrome.storage?.session ?? chrome.storage.local;
 
 async function getMap() {
@@ -52,17 +51,17 @@ async function applyToTab(tabId, isOn) {
       await chrome.scripting.removeCSS({ target: { tabId }, css: CSS });
     }
   } catch (err) {
-    // صفحات محدود یا نبود دسترسی activeTab
+    // Restricted pages (chrome://, Web Store, etc.) or missing activeTab grant
   }
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  // آغاز با نقشهٔ خالی
+  // Start with an empty per-tab state map
   await storage.set({ rtlTabs: {} });
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  // آیکن تب فعال را با وضعیت قبلی همگام می‌کنیم
+  // Sync active tab's icon with stored state
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id != null) {
     const isOn = await getTabState(tab.id);
@@ -90,13 +89,13 @@ chrome.commands?.onCommand.addListener(async (command) => {
   await applyToTab(tab.id, next);
 });
 
-// با تغییر تب فعال، آیکن همان تب همگام شود
+// When active tab changes, sync its icon
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const isOn = await getTabState(tabId);
   setIconForTab(tabId, isOn);
 });
 
-// با تغییر فوکوس پنجره فعال، آیکن تب فعال را به‌روز کن
+// When window focus changes, update the active tab's icon
 chrome.windows.onFocusChanged.addListener(async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id != null) {
@@ -105,7 +104,7 @@ chrome.windows.onFocusChanged.addListener(async () => {
   }
 });
 
-// پس از بارگذاری/رفرش تب، اگر وضعیت روشن بود تلاش می‌کنیم CSS را دوباره اعمال کنیم
+// After tab load/refresh, re-apply CSS if state is On
 chrome.tabs.onUpdated.addListener(async (tabId, info) => {
   if (info.status === "complete") {
     const isOn = await getTabState(tabId);
@@ -116,7 +115,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
   }
 });
 
-// پاکسازی وضعیت هنگام بستن تب
+// Clean up state when tab closes
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   await removeTabState(tabId);
 });

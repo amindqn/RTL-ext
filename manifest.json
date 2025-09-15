@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "RTL Toggle",
     "version": "1.1.0",
-    "description": "راست‌چین کردن هر صفحه با یک کلیک",
+    "description": "Toggle right-to-left layout on any page with one click.",
     "action": {
         "default_title": "RTL Toggle",
         "default_icon": {

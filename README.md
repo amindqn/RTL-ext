@@ -1,44 +1,43 @@
 RTL Toggle
 =================
 
-افزونه‌ای بسیار ساده برای راست‌چین کردن سریع هر صفحهٔ وب با یک کلیک. کدهای برنامه‌نویسی و بلوک‌های کد به‌صورت خودکار چپ‌به‌راست باقی می‌مانند تا خوانایی از بین نرود.
+Toggle right-to-left layout on any page with one click. Code blocks stay left-to-right for readability.
 
-ویژگی‌ها
-- یک کلیک: راست‌چین کردن سریع `html` و `text-align: right`.
-- حفظ خوانایی کد: `pre`، `code` و کلاس‌های رایج هایلایت به LTR برمی‌گردند.
-- آیکن روشن/خاموش: وضعیت جاری را نشان می‌دهد (On/Off).
-- میانبر اختیاری: `Alt+Shift+R` برای تغییر وضعیت در تب فعال.
+Features
+- One-click RTL: sets `direction: rtl` and right-aligns text.
+- Code stays LTR: `pre`, `code`, and common highlight classes remain LTR.
+- Per-tab state: each tab can be On/Off independently, with matching toolbar icon.
+- Optional shortcut: `Alt+Shift+R` (also on macOS) to toggle the active tab.
 
-نصب (Chrome/Edge)
-1) به `chrome://extensions` بروید و «Developer mode» را روشن کنید.
-2) روی «Load unpacked» بزنید و پوشهٔ همین پروژه را انتخاب کنید.
-3) آیکن افزونه در نوار ابزار ظاهر می‌شود.
+Install (Chrome/Edge)
+1) Open `chrome://extensions` and enable “Developer mode”.
+2) Click “Load unpacked” and select this folder.
+3) The extension icon appears in the toolbar.
 
-نحوهٔ استفاده
-- روی آیکن افزونه کلیک کنید تا RTL روشن/خاموش شود. وقتی روشن است آیکن به حالت «On» تغییر می‌کند.
-- همان عمل با میانبر `Alt+Shift+R` هم قابل انجام است.
-- تغییر فقط روی تب فعلی اعمال می‌شود. برای تب‌ها/سایت‌های دیگر لازم است دوباره کلیک کنید (حداقل سطح دسترسی).
+Use
+- Click the icon to toggle RTL for the current tab. The icon switches between On/Off.
+- Or press `Alt+Shift+R` to toggle the active tab.
+- State is per-tab. Switch tabs and each tab keeps its own state.
 
-مجوزها و دلیل هرکدام
-- `activeTab`: تزریق CSS فقط پس از تعامل کاربر با تب فعال.
-- `scripting`: امکان `insertCSS` و `removeCSS`.
-- `storage`: ذخیرهٔ وضعیت روشن/خاموش برای هماهنگی آیکن و تجربهٔ کاربری.
+Permissions
+- `activeTab`: allow CSS injection after user interaction on the active tab.
+- `scripting`: needed for `insertCSS` and `removeCSS`.
+- `storage`: store per-tab state and keep the icon in sync.
 
-محدودیت‌ها
-- روی صفحات محدود مرورگر (مثل `chrome://`، صفحهٔ افزونه‌ها و برخی فروشگاه‌ها) امکان تزریق CSS وجود ندارد.
-- به‌خاطر استفاده از `activeTab`، پس از رفرش یا ورود به تب جدید ممکن است نیاز باشد مجدد کلیک کنید. اگر می‌خواهید به‌صورت خودکار در همهٔ صفحات اعمال شود، می‌توانید `host_permissions` مانند `"<all_urls>"` را به `manifest.json` اضافه کنید (نیازمند دسترسی گسترده‌تر است).
+Limitations
+- No injection on restricted pages (e.g., `chrome://`, Web Store).
+- With only `activeTab`, you may need to click again after page reload. For automatic apply on all sites, add `host_permissions: ["<all_urls>"]` in `manifest.json` (requires broader access).
 
-تغییرات کوچک قابل شخصی‌سازی
-- فایل `bg.js` شامل ثابت `CSS` است. برای تغییر قواعد راست‌چین/کد کافی است همین رشته را ویرایش کنید.
-- میانبر را می‌توانید در `manifest.json` بخش `commands` تغییر دهید یا حذف کنید.
+Customize
+- Edit `CSS` in `bg.js` to tweak RTL rules or code-block handling.
+- Change or remove the shortcut in `manifest.json` under `commands`.
 
-ساختار فایل‌ها
-- `manifest.json`: پیکربندی افزونه (MV3).
-- `bg.js`: Service Worker پس‌زمینه برای مدیریت وضعیت و تزریق CSS.
-- `on.png` و `off.png`: آیکن‌های وضعیت اکشن.
-- `icon16.png`: آیکن عمومی افزونه.
+Files
+- `manifest.json`: MV3 config.
+- `bg.js`: background service worker (state + CSS injection).
+- `on-*.png` and `off-*.png`: toolbar icons for On/Off.
+- `icon-*.png`: extension icons.
 
-تاریخچه نسخه
-- 1.1.0: بهبود آیکن پیش‌فرض، افزودن میانبر اختیاری، ساده‌سازی و ایمن‌سازی تزریق CSS و همگام‌سازی عنوان آیکن.
-- 1.0.0: نسخهٔ اولیه.
-
+Changelog
+- 1.1.0: per-tab icons/state, optional shortcut, robust CSS injection, crisp icons.
+- 1.0.0: initial release.
