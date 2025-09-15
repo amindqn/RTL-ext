@@ -29,14 +29,19 @@ Limitations
 - With only `activeTab`, you may need to click again after page reload. For automatic apply on all sites, add `host_permissions: ["<all_urls>"]` in `manifest.json` (requires broader access).
 
 Customize
-- Edit `CSS` in `bg.js` to tweak RTL rules or code-block handling.
+- Edit the `CSS` template or logic in `src/background/index.js` to tweak RTL rules or code-block handling.
 - Change or remove the shortcut in `manifest.json` under `commands`.
 
-Files
-- `manifest.json`: MV3 config.
-- `bg.js`: background service worker (state + CSS injection).
-- `on-*.png` and `off-*.png`: toolbar icons for On/Off.
-- `icon-*.png`: extension icons.
+Project Structure
+```
+.
+├── manifest.json                # Extension manifest (MV3)
+├── src/
+│   └── background/
+│       └── index.js             # Service worker, state, and CSS injection
+└── assets/
+    └── icons/                   # Toolbar + store icons (on/off and app icons)
+```
 
 Changelog
 - 1.1.0: per-tab icons/state, optional shortcut, robust CSS injection, crisp icons.

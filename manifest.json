@@ -6,13 +6,13 @@
     "action": {
         "default_title": "RTL Toggle",
         "default_icon": {
-            "16": "off-16.png",
-            "24": "off-24.png",
-            "32": "off-32.png"
+            "16": "assets/icons/off-16.png",
+            "24": "assets/icons/off-24.png",
+            "32": "assets/icons/off-32.png"
         }
     },
     "background": {
-        "service_worker": "bg.js"
+        "service_worker": "src/background/index.js"
     },
     "permissions": [
         "scripting",
@@ -29,9 +29,9 @@
         }
     },
     "icons": {
-        "16": "icon-16.png",
-        "32": "icon-32.png",
-        "48": "icon-48.png",
-        "128": "icon-128.png"
+        "16": "assets/icons/icon-16.png",
+        "32": "assets/icons/icon-32.png",
+        "48": "assets/icons/icon-48.png",
+        "128": "assets/icons/icon-128.png"
     }
 }

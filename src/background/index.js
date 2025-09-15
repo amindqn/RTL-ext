@@ -8,6 +8,19 @@ const CSS = `
   }
 `;
 
+const ICON_PATHS = {
+  on: {
+    "16": "assets/icons/on-16.png",
+    "24": "assets/icons/on-24.png",
+    "32": "assets/icons/on-32.png",
+  },
+  off: {
+    "16": "assets/icons/off-16.png",
+    "24": "assets/icons/off-24.png",
+    "32": "assets/icons/off-32.png",
+  },
+};
+
 const storage = chrome.storage?.session ?? chrome.storage.local;
 
 async function getMap() {
@@ -35,9 +48,7 @@ async function removeTabState(tabId) {
 }
 
 function setIconForTab(tabId, isOn) {
-  const path = isOn
-    ? { "16": "on-16.png", "24": "on-24.png", "32": "on-32.png" }
-    : { "16": "off-16.png", "24": "off-24.png", "32": "off-32.png" };
+  const path = isOn ? ICON_PATHS.on : ICON_PATHS.off;
   chrome.action.setIcon({ tabId, path });
   chrome.action.setTitle({ tabId, title: isOn ? "RTL: On" : "RTL: Off" });
 }
