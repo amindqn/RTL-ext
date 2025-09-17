@@ -1,10 +1,30 @@
+const FONT_LINKS = [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap",
+  },
+];
+
 const CSS = `
-  html { direction: rtl; text-align: right; }
+  html {
+    direction: rtl;
+    text-align: right;
+  }
+
+  html,
+  body,
+  body *:not(code):not(pre):not(kbd):not(samp):not(.code):not(.hljs):not(.highlight):not([class*="code"]):not([class*="hljs"]) {
+    font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif !important;
+  }
+
   code, pre, kbd, samp, .code, .hljs, .highlight,
   *[class*="code"], *[class*="hljs"] {
     direction: ltr !important;
     text-align: left !important;
     unicode-bidi: isolate;
+    font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace !important;
   }
 `;
 
@@ -19,6 +39,41 @@ function getIconPaths(isOn) {
 }
 
 const storage = chrome.storage?.session ?? chrome.storage.local;
+
+async function addFontLinks(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: (links) => {
+      const root = document.head || document.documentElement;
+      if (!root) return;
+      const attr = "data-rtl-ext-font";
+      links.forEach((link) => {
+        const href = link.href ?? "";
+        if (href && root.querySelector(`link[${attr}="${href}"]`)) return;
+        const el = document.createElement("link");
+        el.rel = link.rel;
+        if (href) el.href = href;
+        if (link.crossorigin !== undefined) {
+          el.setAttribute("crossorigin", link.crossorigin);
+        }
+        el.setAttribute(attr, href || link.rel);
+        root.appendChild(el);
+      });
+    },
+    args: [FONT_LINKS],
+  });
+}
+
+async function removeFontLinks(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      document
+        .querySelectorAll('link[data-rtl-ext-font]')
+        .forEach((el) => el.remove());
+    },
+  });
+}
 
 async function getMap() {
   const data = await storage.get("rtlTabs");
@@ -53,9 +108,11 @@ async function applyToTab(tabId, isOn) {
   if (!tabId) return;
   try {
     if (isOn) {
+      await addFontLinks(tabId);
       await chrome.scripting.insertCSS({ target: { tabId }, css: CSS });
     } else {
       await chrome.scripting.removeCSS({ target: { tabId }, css: CSS });
+      await removeFontLinks(tabId);
     }
   } catch (err) {
     // Restricted pages (chrome://, Web Store, etc.) or missing activeTab grant
