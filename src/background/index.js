@@ -15,7 +15,7 @@ const CSS = `
 
   html,
   body,
-  body *:not(code):not(pre):not(kbd):not(samp):not(.code):not(.hljs):not(.highlight):not([class*="code"]):not([class*="hljs"]) {
+  body *:not(code):not(pre):not(kbd):not(samp):not(.code):not(.hljs):not(.highlight):not(.katex):not([class*="code"]):not([class*="hljs"]):not([class*="katex" i]):not(:is(.katex *)):not(:is([class*="katex" i] *)) {
     font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif !important;
   }
 
@@ -25,6 +25,15 @@ const CSS = `
     text-align: left !important;
     unicode-bidi: isolate;
     font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace !important;
+  }
+
+  .katex,
+  *[class*="katex" i],
+  .katex *,
+  *[class*="katex" i] * {
+    direction: ltr !important;
+    text-align: left !important;
+    unicode-bidi: isolate;
   }
 `;
 
