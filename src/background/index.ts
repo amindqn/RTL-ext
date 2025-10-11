@@ -1,4 +1,12 @@
-const FONT_LINKS = [
+type FontLink = {
+  rel: string;
+  href?: string;
+  crossorigin?: string;
+};
+
+type TabStateMap = Record<string, boolean>;
+
+const FONT_LINKS: FontLink[] = [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
   {
@@ -7,7 +15,7 @@ const FONT_LINKS = [
   },
 ];
 
-const CSS = `
+const INJECTED_CSS = `
   html {
     direction: rtl;
     text-align: right;
@@ -38,29 +46,31 @@ const CSS = `
 `;
 
 const STYLE_ATTR = "data-rtl-ext-style";
+const FONT_ATTR = "data-rtl-ext-font";
 
 const ICON_SIZES = ["16", "24", "32"];
 
-function getIconPaths(isOn) {
+function getIconPaths(isOn: boolean): Record<string, string> {
   const variant = isOn ? "on" : "off";
-  return ICON_SIZES.reduce((paths, size) => {
+  return ICON_SIZES.reduce<Record<string, string>>((paths, size) => {
     paths[size] = chrome.runtime.getURL(`assets/icons/${variant}-${size}.png`);
     return paths;
   }, {});
 }
 
-const storage = chrome.storage?.session ?? chrome.storage.local;
+const storage = (chrome.storage?.session ?? chrome.storage.local) as chrome.storage.StorageArea;
 
-async function addFontLinks(tabId) {
+async function addFontLinks(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({
     target: { tabId },
-    func: (links) => {
-      const root = document.head || document.documentElement;
+    func: (links: FontLink[], attr: string) => {
+      const root = document.head ?? document.documentElement;
       if (!root) return;
-      const attr = "data-rtl-ext-font";
-      links.forEach((link) => {
+      links.forEach((link: FontLink) => {
         const href = link.href ?? "";
-        if (href && root.querySelector(`link[${attr}="${href}"]`)) return;
+        if (href && root.querySelector(`link[${attr}="${href}"]`)) {
+          return;
+        }
         const el = document.createElement("link");
         el.rel = link.rel;
         if (href) el.href = href;
@@ -71,18 +81,18 @@ async function addFontLinks(tabId) {
         root.appendChild(el);
       });
     },
-    args: [FONT_LINKS],
+    args: [FONT_LINKS, FONT_ATTR],
   });
 }
 
-async function addStyleTag(tabId) {
+async function addStyleTag(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({
     target: { tabId },
-    func: (css, attrName) => {
-      const root = document.head || document.documentElement;
+    func: (css: string, attrName: string) => {
+      const root = document.head ?? document.documentElement;
       if (!root) return;
       const selector = `style[${attrName}]`;
-      let style = root.querySelector(selector);
+      let style = root.querySelector<HTMLStyleElement>(selector);
       if (!style) {
         style = document.createElement("style");
         style.type = "text/css";
@@ -93,54 +103,56 @@ async function addStyleTag(tabId) {
         style.textContent = css;
       }
     },
-    args: [CSS, STYLE_ATTR],
+    args: [INJECTED_CSS, STYLE_ATTR],
   });
 }
 
-async function removeFontLinks(tabId) {
+async function removeFontLinks(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({
     target: { tabId },
-    func: () => {
+    func: (attr: string) => {
       document
-        .querySelectorAll('link[data-rtl-ext-font]')
+        .querySelectorAll(`link[${attr}]`)
         .forEach((el) => el.remove());
     },
+    args: [FONT_ATTR],
   });
 }
 
-async function getMap() {
-  const data = await storage.get("rtlTabs");
-  return data.rtlTabs || {};
+async function getMap(): Promise<TabStateMap> {
+  const data = (await storage.get("rtlTabs")) as { rtlTabs?: TabStateMap };
+  return data.rtlTabs ?? {};
 }
 
-async function getTabState(tabId) {
+async function getTabState(tabId: number): Promise<boolean> {
   const map = await getMap();
-  return Boolean(map[tabId]);
+  return Boolean(map[String(tabId)]);
 }
 
-async function setTabState(tabId, isOn) {
+async function setTabState(tabId: number, isOn: boolean): Promise<void> {
   const map = await getMap();
-  map[tabId] = isOn;
+  map[String(tabId)] = isOn;
   await storage.set({ rtlTabs: map });
 }
 
-async function removeTabState(tabId) {
+async function removeTabState(tabId: number): Promise<void> {
   const map = await getMap();
-  if (tabId in map) {
-    delete map[tabId];
+  const key = String(tabId);
+  if (key in map) {
+    delete map[key];
     await storage.set({ rtlTabs: map });
   }
 }
 
-function setIconForTab(tabId, isOn) {
+function setIconForTab(tabId: number, isOn: boolean): void {
   chrome.action.setIcon({ tabId, path: getIconPaths(isOn) });
   chrome.action.setTitle({ tabId, title: isOn ? "RTL: On" : "RTL: Off" });
 }
 
-async function removeStyleTag(tabId) {
+async function removeStyleTag(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({
     target: { tabId },
-    func: (attrName) => {
+    func: (attrName: string) => {
       document
         .querySelectorAll(`style[${attrName}]`)
         .forEach((el) => el.remove());
@@ -149,7 +161,7 @@ async function removeStyleTag(tabId) {
   });
 }
 
-async function applyToTab(tabId, isOn) {
+async function applyToTab(tabId: number, isOn: boolean): Promise<void> {
   if (!tabId) return;
   try {
     if (isOn) {
@@ -159,13 +171,13 @@ async function applyToTab(tabId, isOn) {
       await removeStyleTag(tabId);
       // Remove legacy injected CSS in case older versions used insertCSS.
       try {
-        await chrome.scripting.removeCSS({ target: { tabId }, css: CSS });
-      } catch (err) {
+        await chrome.scripting.removeCSS({ target: { tabId }, css: INJECTED_CSS });
+      } catch (error: unknown) {
         // Ignore if stylesheet is already gone or was never inserted via insertCSS.
       }
       await removeFontLinks(tabId);
     }
-  } catch (err) {
+  } catch (error: unknown) {
     // Restricted pages (chrome://, Web Store, etc.) or missing activeTab grant
   }
 }
@@ -184,7 +196,7 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
-chrome.action.onClicked.addListener(async (tab) => {
+chrome.action.onClicked.addListener(async (tab: chrome.tabs.Tab) => {
   if (!tab?.id) return;
   const current = await getTabState(tab.id);
   const next = !current;
@@ -193,7 +205,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   await applyToTab(tab.id, next);
 });
 
-chrome.commands?.onCommand.addListener(async (command) => {
+chrome.commands?.onCommand.addListener(async (command: string) => {
   if (command !== "toggle-rtl") return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return;
@@ -205,13 +217,13 @@ chrome.commands?.onCommand.addListener(async (command) => {
 });
 
 // When active tab changes, sync its icon
-chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+chrome.tabs.onActivated.addListener(async ({ tabId }: chrome.tabs.TabActiveInfo) => {
   const isOn = await getTabState(tabId);
   setIconForTab(tabId, isOn);
 });
 
 // When window focus changes, update the active tab's icon
-chrome.windows.onFocusChanged.addListener(async () => {
+chrome.windows.onFocusChanged.addListener(async (_windowId: number) => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id != null) {
     const isOn = await getTabState(tab.id);
@@ -220,7 +232,7 @@ chrome.windows.onFocusChanged.addListener(async () => {
 });
 
 // After tab load/refresh, re-apply CSS if state is On
-chrome.tabs.onUpdated.addListener(async (tabId, info) => {
+chrome.tabs.onUpdated.addListener(async (tabId: number, info: chrome.tabs.TabChangeInfo) => {
   if (info.status === "complete") {
     const isOn = await getTabState(tabId);
     setIconForTab(tabId, isOn);
@@ -231,6 +243,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
 });
 
 // Clean up state when tab closes
-chrome.tabs.onRemoved.addListener(async (tabId) => {
+chrome.tabs.onRemoved.addListener(async (tabId: number) => {
   await removeTabState(tabId);
 });
