@@ -37,6 +37,8 @@ const CSS = `
   }
 `;
 
+const STYLE_ATTR = "data-rtl-ext-style";
+
 const ICON_SIZES = ["16", "24", "32"];
 
 function getIconPaths(isOn) {
@@ -70,6 +72,28 @@ async function addFontLinks(tabId) {
       });
     },
     args: [FONT_LINKS],
+  });
+}
+
+async function addStyleTag(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: (css, attrName) => {
+      const root = document.head || document.documentElement;
+      if (!root) return;
+      const selector = `style[${attrName}]`;
+      let style = root.querySelector(selector);
+      if (!style) {
+        style = document.createElement("style");
+        style.type = "text/css";
+        style.setAttribute(attrName, "true");
+        root.appendChild(style);
+      }
+      if (style.textContent !== css) {
+        style.textContent = css;
+      }
+    },
+    args: [CSS, STYLE_ATTR],
   });
 }
 
@@ -113,14 +137,32 @@ function setIconForTab(tabId, isOn) {
   chrome.action.setTitle({ tabId, title: isOn ? "RTL: On" : "RTL: Off" });
 }
 
+async function removeStyleTag(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: (attrName) => {
+      document
+        .querySelectorAll(`style[${attrName}]`)
+        .forEach((el) => el.remove());
+    },
+    args: [STYLE_ATTR],
+  });
+}
+
 async function applyToTab(tabId, isOn) {
   if (!tabId) return;
   try {
     if (isOn) {
       await addFontLinks(tabId);
-      await chrome.scripting.insertCSS({ target: { tabId }, css: CSS });
+      await addStyleTag(tabId);
     } else {
-      await chrome.scripting.removeCSS({ target: { tabId }, css: CSS });
+      await removeStyleTag(tabId);
+      // Remove legacy injected CSS in case older versions used insertCSS.
+      try {
+        await chrome.scripting.removeCSS({ target: { tabId }, css: CSS });
+      } catch (err) {
+        // Ignore if stylesheet is already gone or was never inserted via insertCSS.
+      }
       await removeFontLinks(tabId);
     }
   } catch (err) {
