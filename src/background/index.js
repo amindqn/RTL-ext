@@ -35,6 +35,12 @@ const CSS = `
     text-align: left !important;
     unicode-bidi: isolate;
   }
+
+  rich-textarea > div {
+    direction: rtl !important;
+    text-align: right !important;
+    unicode-bidi: isolate;
+  }
 `;
 
 const STYLE_ATTR = "data-rtl-ext-style";
