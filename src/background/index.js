@@ -15,7 +15,7 @@ const CSS = `
 
   html,
   body,
-  body *:not(code):not(pre):not(kbd):not(samp):not(.code):not(.hljs):not(.highlight):not(.katex):not([class*="code"]):not([class*="hljs"]):not([class*="katex" i]):not(:is(.katex *)):not(:is([class*="katex" i] *)) {
+  body *:not(code):not(pre):not(mat-icon):not(kbd):not(samp):not(.code):not(.hljs):not(.highlight):not(.katex):not([class*="code"]):not([class*="hljs"]):not([class*="katex" i]):not(:is(.katex *)):not(:is([class*="katex" i] *)) {
     font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif !important;
   }
 
